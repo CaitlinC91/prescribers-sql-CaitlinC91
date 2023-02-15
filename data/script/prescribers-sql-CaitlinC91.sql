@@ -14,7 +14,7 @@ SELECT t1.nppes_provider_first_name, t1.nppes_provider_last_org_name, t1.special
 FROM prescriber AS t1
 LEFT JOIN prescription AS t2
 USING (npi)
-WHERE total_claim_count IS NOT NULL
+WHERE total_claim_count IS NOT NULL   --could have used a Inner Join instead of the WHERE clause?
 ORDER BY total_claim_count DESC
 LIMIT 1;
 
@@ -22,8 +22,28 @@ LIMIT 1;
 
 -- 2. 
 --     a. Which specialty had the most total number of claims (totaled over all drugs)?
+SELECT DISTINCT specialty_description, SUM(total_claim_count) AS total_claims
+FROM prescriber
+LEFT JOIN prescription  		--chose left join to include all specialties, had to filter out nulls from total_claims and ended up
+USING (npi)             		  -- with basiclly an inner join
+WHERE total_claim_count IS NOT NULL
+GROUP BY specialty_description
+ORDER BY total_claims DESC;
+
+--   "Family Practice",	9752347
 
 --     b. Which specialty had the most total number of claims for opioids?
+SELECT DISTINCT specialty_description, Sum(total_claim_count) AS total_claims
+FROM prescriber AS t1
+INNER JOIN prescription AS t2
+USING (npi)
+INNER JOIN drug AS t3
+USING (drug_name)
+WHERE opioid_drug_flag = 'Y'
+GROUP BY specialty_description
+ORDER BY total_claims DESC;
+
+-- "Nurse Practitioner"	900845
 
 --     c. **Challenge Question:** Are there any specialties that appear in the prescriber table that have no associated prescriptions in the prescription table?
 
