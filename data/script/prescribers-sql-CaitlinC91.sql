@@ -24,7 +24,7 @@ LIMIT 1;
 --     a. Which specialty had the most total number of claims (totaled over all drugs)?
 SELECT DISTINCT specialty_description, SUM(total_claim_count) AS total_claims
 FROM prescriber
-LEFT JOIN prescription  		--chose left join to include all specialties, had to filter out nulls from total_claims and ended up
+LEFT JOIN prescription  		--chose left join to include all specialties, had to filter out nulls 										from total_claims and ended up
 USING (npi)             		  -- with basiclly an inner join
 WHERE total_claim_count IS NOT NULL
 GROUP BY specialty_description
@@ -104,13 +104,68 @@ GROUP BY drug_type;
 
 -- 5. 
 --     a. How many CBSAs are in Tennessee? **Warning:** The cbsa table contains information for all states, not just Tennessee.
+Select *
+FROM cbsa
+WHERE cbsaname LIKE '%TN'
+
+-- 33
 
 --     b. Which cbsa has the largest combined population? Which has the smallest? Report the CBSA name and total population.
 
+(SELECT DISTINCT(cbsaname), SUM(population) as total_pop
+FROM cbsa
+INNER JOIN fips_county
+USING (fipscounty)
+INNER JOIN population
+USING (fipscounty)
+GROUP BY cbsaname
+ORDER BY total_pop DESC
+LIMIT 1)
+UNION ALL
+(SELECT DISTINCT(cbsaname), SUM(population) as total_pop
+FROM cbsa
+INNER JOIN fips_county
+USING (fipscounty)
+INNER JOIN population
+USING (fipscounty)
+GROUP BY cbsaname
+ORDER BY total_pop ASC
+LIMIT 1)
+
+--"Nashville-Davidson--Murfreesboro--Franklin, TN",	1830410
+--"Morristown, TN",	116352
+
 --     c. What is the largest (in terms of population) county which is not included in a CBSA? Report the county name and population.
+
+
+SELECT population,county
+FROM population
+Left JOIN fips_county
+USING (fipscounty)
+LEFT JOIN cbsa
+USING (fipscounty)
+WHERE cbsaname IS NULL
+ORDER BY population DESC
+LIMIT 1;
+
+-- "SEVIER", pop 95523
+
 
 -- 6. 
 --     a. Find all rows in the prescription table where total_claims is at least 3000. Report the drug_name and the total_claim_count.
+Select drug_name, total_claim_count
+FROM prescription
+WHERE total_claim_count >= 3000
+
+--"OXYCODONE HCL"			4538
+-- "GABAPENTIN"					3531
+-- "MIRTAZAPINE"				3085
+-- "LISINOPRIL"					3655
+-- "FUROSEMIDE"					3083
+-- "HYDROCODONE-ACETAMINOPHEN"	3376
+-- "LEVOTHYROXINE SODIUM"		3101
+-- "LEVOTHYROXINE SODIUM"		3138
+-- "LEVOTHYROXINE SODIUM"		3023
 
 --     b. For each instance that you found in part a, add a column that indicates whether the drug is an opioid.
 
